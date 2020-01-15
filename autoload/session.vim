@@ -41,13 +41,13 @@ function! session#sessions() abort
     if winid isnot# -1
       call win_gotoid(winid)
     else
-      exec 'b' s:session_list_buffer
+      exec 'new | b' s:session_list_buffer
     endif
   else
     exec 'new' s:session_list_buffer
     set buftype=nofile
-    nnoremap <buffer>q :<C-u>bw!<CR>
-    nnoremap <buffer> <CR> :<C-u>call session#load_session(trim(getline('.')))<CR>
+    nnoremap <silent> <buffer>q :<C-u>bw!<CR>
+    nnoremap <silent> <buffer> <CR> :<C-u>call session#load_session(trim(getline('.')))<CR>
   endif
 
   " delete buffer contents
