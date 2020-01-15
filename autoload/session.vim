@@ -47,7 +47,7 @@ function! session#sessions() abort
   else
     execute 'new' s:session_list_buffer
     set buftype=nofile
-    nnoremap <silent> <buffer>q :<C-u>bwipeout!<CR>
+    nnoremap <silent> <buffer> q :<C-u>bwipeout!<CR>
     nnoremap <silent> <buffer> <CR> :<C-u>call session#load_session(trim(getline('.')))<CR>
   endif
 
