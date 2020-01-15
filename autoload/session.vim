@@ -14,7 +14,7 @@ let s:sep = fnamemodify('.', ':p')[-1:]
 
 function! s:echo_err(msg) abort
   echohl ErrorMsg
-  echom 'session.vim:' a:msg
+  echomsg 'session.vim:' a:msg
   echohl None
 endfunction
 
@@ -25,7 +25,8 @@ function! s:files() abort
     return []
   endif
 
-  return readdir(session_path, '!isdirectory(v:val)')
+  let Filter = { file -> !isdirectory(session_path . s:sep . file) }
+  return readdir(session_path, Filter)
 endfunction
 
 function! session#sessions() abort
@@ -41,28 +42,36 @@ function! session#sessions() abort
     if winid isnot# -1
       call win_gotoid(winid)
     else
-      exec 'new | b' s:session_list_buffer
+      execute 'sbuffer' s:session_list_buffer
     endif
   else
-    exec 'new' s:session_list_buffer
+    execute 'new' s:session_list_buffer
     set buftype=nofile
-    nnoremap <silent> <buffer>q :<C-u>bw!<CR>
-    nnoremap <silent> <buffer> <CR> :<C-u>call session#load_session(trim(getline('.')))<CR>
+
+    nnoremap <silent> <buffer>
+    \   <Plug>(session-close)
+    \   :<C-u>bwipeout!<CR>
+    nnoremap <silent> <buffer>
+    \   <Plug>(session-open)
+    \   :<C-u>call session#load_session(trim(getline('.')))<CR>
+
+    nmap <buffer> q <Plug>(session-close)
+    nmap <buffer> <CR> <Plug>(session-open)
   endif
 
   " delete buffer contents
-  exec '%d_'
+  %delete _
   call setline(1, files)
 endfunction
 
 function! session#create_session(file) abort
-  exec 'mksession!' join([g:session_path, a:file], s:sep)
+  execute 'mksession!' join([g:session_path, a:file], s:sep)
   redraw
   echo 'session.vim: created'
 endfunction
 
 function! session#load_session(file) abort
-  exec 'source' join([g:session_path, a:file], s:sep)
+  execute 'source' join([g:session_path, a:file], s:sep)
 endfunction
 
 let &cpo = s:save_cpo
