@@ -1,0 +1,90 @@
+*session.txt*	a summary
+
+Version : 0.0.1
+Author  : skanehira <sho19921005@gmai.com>
+License : MIT license  {{{
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+==============================================================================
+CONTENTS					*session-contents*
+
+INTRODUCTION			|session-introduction|
+USAGE				|session-usage|
+INTERFACE			|session-interface|
+  VARIABLES			  |session-variables|
+  COMMANDS			  |session-commands|
+  KEY-MAPPINGS			  |session-key-mappings|
+  FUNCTIONS			  |session-functions|
+TODO				|session-todo|
+CHANGELOG			|session-changelog|
+
+
+==============================================================================
+INTRODUCTION					*session-introduction*
+
+*session* is a Vim plugin
+
+Latest version:
+https://github.com/skanehira/session.vim
+
+
+==============================================================================
+USAGE						*session-usage*
+
+
+
+==============================================================================
+INTERFACE					*session-interface*
+
+------------------------------------------------------------------------------
+VARIABLES					*session-variables*
+
+g:session_path					*g:session_path*
+	セッションを保存するファイルパスを設定します。
+
+------------------------------------------------------------------------------
+COMMANDS					*session-commands*
+
+:SessionList					*:SessionList*
+	セッション一覧を開きます。
+	Enterでカーソル上にあるセッションをロードします。
+
+:SessionCreate {name}				*:SessionCreate*
+	セッションを{name}で保存します。
+
+------------------------------------------------------------------------------
+KEY-MAPPINGS					*session-key-mappings*
+
+<CR>						*session-list-<cr>*
+
+------------------------------------------------------------------------------
+FUNCTIONS					*session-functions*
+
+==============================================================================
+TODO						*session-todo*
+
+
+
+==============================================================================
+CHANGELOG					*session-changelog*
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:noet:fen:
