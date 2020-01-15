@@ -41,7 +41,7 @@ function! session#sessions() abort
     if winid isnot# -1
       call win_gotoid(winid)
     else
-      execute 'new | buffer' s:session_list_buffer
+      execute 'sbuffer' s:session_list_buffer
     endif
   else
     execute 'new' s:session_list_buffer
