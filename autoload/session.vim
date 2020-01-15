@@ -51,7 +51,7 @@ function! session#sessions() abort
   endif
 
   " delete buffer contents
-  execute '%delete _'
+  %delete _
   call setline(1, files)
 endfunction
 
