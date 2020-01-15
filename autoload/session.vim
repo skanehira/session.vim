@@ -55,6 +55,12 @@ function! session#sessions() abort
   call setline(1, files)
 endfunction
 
+function! session#create_session(file) abort
+  exec 'mksession!' join([g:session_path, a:file], s:sep)
+  redraw
+  echo 'session.vim: created'
+endfunction
+
 function! session#load_session(file) abort
   exec 'source' join([g:session_path, a:file], s:sep)
 endfunction
