@@ -2,9 +2,6 @@
 " Author: skanehira
 " License: MIT
 
-let s:save_cpo = &cpo
-set cpo&vim
-
 " buffer name
 let s:session_list_buffer = 'SESSIONS'
 " path separator
@@ -73,6 +70,3 @@ endfunction
 function! session#load_session(file) abort
   execute 'source' join([g:session_path, a:file], s:sep)
 endfunction
-
-let &cpo = s:save_cpo
-unlet s:save_cpo
