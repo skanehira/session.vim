@@ -73,6 +73,10 @@ COMMANDS					*session-commands*
 KEY-MAPPINGS					*session-key-mappings*
 
 <CR>						*session-list-<cr>*
+	カーソル下のセッションをロードします。
+
+q						*session-list-q*
+	セッションリストのバッファを閉じます。
 
 ------------------------------------------------------------------------------
 FUNCTIONS					*session-functions*
