@@ -7,8 +7,6 @@ let s:session_list_buffer = 'SESSIONS'
 " path separator
 let s:sep = fnamemodify('.', ':p')[-1:]
 
-"let g:session_path = expand('~/.vim/sessions')
-
 function! s:echo_err(msg) abort
   echohl ErrorMsg
   echomsg 'session.vim:' a:msg
