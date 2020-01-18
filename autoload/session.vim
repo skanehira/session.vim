@@ -21,7 +21,7 @@ function! s:files() abort
   endif
 
   if has('nvim')
-    let filelist = glob(session_path . '/**')
+    let filelist = glob(session_path . s:sep . '**')
     let splitted = split(filelist, "\n")
     let session_list = []
     for file in splitted
