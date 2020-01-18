@@ -21,10 +21,9 @@ function! s:files() abort
   endif
 
   if has('nvim')
-    let filelist = glob(session_path . s:sep . '**')
-    let splitted = split(filelist, "\n")
+    let file_list = glob(session_path . s:sep . '**', v:false, v:true)
     let session_list = []
-    for file in splitted
+    for file in file_list
       if !isdirectory(file)
         call add(session_list ,fnamemodify(file, ":t:r"))
       endif
