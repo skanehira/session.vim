@@ -20,8 +20,20 @@ function! s:files() abort
     return []
   endif
 
-  let Filter = { file -> !isdirectory(session_path . s:sep . file) }
-  return readdir(session_path, Filter)
+  if has('nvim')
+    let filelist = glob(session_path . '/**')
+    let splitted = split(filelist, "\n")
+    let session_list = []
+    for file in splitted
+      if !isdirectory(file)
+        call add(session_list ,fnamemodify(file, ":t:r"))
+      endif
+    endfor
+    return session_list
+  else
+    let Filter = { file -> !isdirectory(session_path . s:sep . file) }
+    return readdir(session_path, Filter)
+  endif
 endfunction
 
 function! session#sessions() abort
