@@ -7,6 +7,14 @@ let s:session_list_buffer = 'SESSIONS'
 " path separator
 let s:sep = fnamemodify('.', ':p')[-1:]
 
+if exists('*readdir')
+  let s:readdir = function('readdir')
+else
+  function! s:readdir(dir) abort
+    return map(glob(a:dir . s:sep . '*', 1, 1), 'fnamemodify(v:val, ":t")')
+  endfunction
+endif
+
 function! s:echo_err(msg) abort
   echohl ErrorMsg
   echomsg 'session.vim:' a:msg
@@ -20,19 +28,8 @@ function! s:files() abort
     return []
   endif
 
-  if has('nvim')
-    let file_list = glob(session_path . s:sep . '**', v:false, v:true)
-    let session_list = []
-    for file in file_list
-      if !isdirectory(file)
-        call add(session_list ,fnamemodify(file, ":t:r"))
-      endif
-    endfor
-    return session_list
-  else
-    let Filter = { file -> !isdirectory(session_path . s:sep . file) }
-    return readdir(session_path, Filter)
-  endif
+  let Filter = { file -> !isdirectory(session_path . s:sep . file) }
+  return filter(s:readdir(session_path), Filter)
 endfunction
 
 function! session#sessions() abort
@@ -55,11 +52,11 @@ function! session#sessions() abort
     set buftype=nofile
 
     nnoremap <silent> <buffer>
-    \   <Plug>(session-close)
-    \   :<C-u>bwipeout!<CR>
+          \   <Plug>(session-close)
+          \   :<C-u>bwipeout!<CR>
     nnoremap <silent> <buffer>
-    \   <Plug>(session-open)
-    \   :<C-u>call session#load_session(trim(getline('.')))<CR>
+          \   <Plug>(session-open)
+          \   :<C-u>call session#load_session(trim(getline('.')))<CR>
 
     nmap <buffer> q <Plug>(session-close)
     nmap <buffer> <CR> <Plug>(session-open)
