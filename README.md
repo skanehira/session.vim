@@ -220,20 +220,128 @@ endif
 | `isnot`          | `isnot#`     | `isnot?`     | 異なるのインスタンス |
 
 ## バッファについて
-### バッファのタイプ
+- メモリ上にロードされたファイルのこと
+- バッファには名前と番号があり、名前はファイル名で、番号は作成された順で割り当てられる
+- バッファは`:bwipeout`で明示的に削除するかVimを終了しなければメモリに残る
+
 ### バッファの存在チェック
+- `bufexists({expr})`で`{expr}`のバッファがあるかを確認できる
+- `{expr}`が数値の場合はバッファ番号、文字列の場合はバッファ名とみなされる
+
+### バッファのタイプ
+- `set buftype={type}`でバッファのタイプを設定できる
+- 一時的に使うバッファは`nofile`というタイプするのが一般的
+- 詳細は`:h buftype`を参照
+
 ### バッファのテキストを取得
+- カレントバッファからテキストを取得するには`getline({lnum}, {end})`を使用する
+`{end}`を指定しない場合は`{lnum}`で指定した行だけを取得する
+
+```vim
+" 結果 => 1行目のテキストが出力される
+echo getline(1)
+
+" 結果 => 1~3行目のテキストがリストで取得できる
+echo getline(1, 3)
+```
+
 ### バッファにテキストを挿入
-## ウィンドウについて
-### ウィンドウに移動
-### バッファが表示されているウィンドウのIDを取得
-## 関数
-### `!`と`abort`
-### 引数
-### 戻り値
-### 存在チェック
-## Exコマンド実行
-## Lambda
+- カレントバッファにテキストを挿入するには`setline({lnum}, {text})`を使用する
+- `{text}`はリストの場合は、`{lnum}`行目とそれ以降の行に要素が挿入される
+
+```vim
+" 結果 => 1行目に my name is gorilla が挿入される
+call setline(1, 'my name is gorilla')
+
+" 結果 => 1行目がmy、2行目がnameが挿入される
+call setline(1, ['my', 'name'])
+```
+
+### ウィンドウについて
+- ウィンドウはバッファを表示するための領域
+- ウィンドウにはIDが割り当てられます。
+- 複数のウィンドウで複数のバッファを表示できます。
+- `:q`といったコマンドではウィンドウを閉じるだけなのでバッファは残る
+
+#### ウィンドウIDを取得
+- `winnr()`で現在のウィンドウIDを取得できる
+- 引数を受け取ることもできるので詳細は`:h winnr()`を参照
+
+#### ウィンドウに移動
+- `win_gotoid({expr})`で`{expr}`のIDのウィンドウに移動
+
+#### バッファが表示されているウィンドウのIDを取得
+- `bufwinid({expr})`で`{expr}`のバッファが表示されているウィンドウのIDを取得
+
+### 関数
+- 関数は`function`と`endfunction`で囲い、処理はその間に記述
+
+```vim
+function! Echo(msg) abort
+  echo a:msg
+endfunction
+```
+
+#### 関数の存在チェック
+- `exists({expr})`で関数があるかをチェックできる
+- 関数をチェックするとき`{expr}`は関数名の前に`*`をつける
+
+```vim
+if exists('*readdir')
+  " do something
+else
+```
+
+#### `!`と`abort`
+- `!`は同名の関数がある場合は上書きする
+- `abort`は関数内でエラーが発生した場合、そこで処理を終了する
+- Vim scriptはデフォルトでエラーがあっても処理が継続されるため基本的に`abort`をつける
+
+#### 引数
+- 引数を使用するときは`a:`スコープ接頭子を付ける必要がある
+
+#### 戻り値
+- `return {expr}`で`{expr}`の評価結果を返すことができる
+
+```vim
+" 結果 => gorillaが返る
+function! MyName() abort
+  return 'gorilla'
+endfunction
+```
+
+### Exコマンド実行
+- `execute {expr} ..`で`{expr}`の評価結果の文字列をExコマンドとして実行できる
+- 複数の引数がある場合、それらはスペースで結合される
+
+```vim
+" 結果 => godzilla
+execute 'echo' '"godzilla"'
+
+" 結果 => gorilla godzilla
+execute 'echo' '"gorilla"' '"godzilla"'
+```
+
+### 外部コマンド実行
+- `system({expr}, {input})`で`{expr}`の評価結果の文字列を外部コマンドとして実行できる
+- `{input}`は省略可能で指定した場合はその文字列をそのままコマンドの標準入力として渡される
+
+```vim
+" 結果 => my name is gorilla
+echo system('echo "my name is gorilla"')
+
+" 結果 => my name is gorilla
+echo system('cat', 'my name is gorilla')
+```
+
+### Lambda
+- `{ args -> expr }`という形でLambdaを書くことができる
+
+```vim
+let F = {a, b -> a - b}
+" 結果 => [1, 2, 3, 4, 7]
+echo sort([3, 7, 2, 1, 4], F)
+```
 
 # セッション管理のプラグインを作ってみよう
 
