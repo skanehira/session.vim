@@ -489,9 +489,9 @@ endfunction
 :call TestEcho('I am gorilla')
 ```
 
-これは動作確認の関数なので削除しておきましょう。`delfunc TestEcho`で削除するか、一度Vimを再起動するかしましょう。
+これは動作確認の関数なので削除しておきましょう。`:delfunc TestEcho`で削除するか、一度Vimを再起動するかしましょう。
 
-#### 2. `g:session_path`からセッションファイル一覧を取得する関数を実装
+#### 4. `g:session_path`からセッションファイル一覧を取得する関数を実装
 `s:readdir`関数を使って`g:session_path`配下にあるファイルのリストを取得します。
 
 ここでのキモは`exists()`で`readdir()`関数があるかを確認するところです。
@@ -540,9 +540,109 @@ endfunction
 
 このテストのための関数も不要なので削除しておきましょう。
 
-#### セッション一覧取得処理
-##### セッションファイルのリストを取得
-##### リストを表示するバッファを作成（すでにあれば表示）
+#### 5. セッション一覧を表示する
+セッションファイルをリストで取得できるようになったので、次に取得したセッション一覧をバッファに書き出します。
+
+```vim
+let s:session_list_buffer = 'SESSIONS'
+
+function! session#sessions() abort
+  let files = s:files()
+  if empty(files)
+    return
+  endif
+
+  execute 'new' s:session_list_buffer
+  set buftype=nofile
+
+  call setline(1, files)
+endfunction
+```
+
+これで`:call session#sessions()`を実行すると`SESSIONS`というバッファにセッションファイル一覧が表示されます。
+
+しかし、このままでは関数を実行するたびに新しいウィンドウが作れてしまうので、以下のことを考慮して改善する必要があります。
+
+- バッファがなければ新規作成
+- バッファがあるがウィンドウに表示されていないならウィンドウに表示させる
+- バッファがあってウィンドウに表示されているなら、バッファの中身をクリア
+
+```diff
+function! session#sessions() abort
+  let files = s:files()
+  if empty(files)
+    return
+  endif
+
++ " if buffer exists
++ if bufexists(s:session_list_buffer)
++   " if buffer display in window
++   let winid = bufwinid(s:session_list_buffer)
++   if winid isnot# -1
++     call win_gotoid(winid)
++   else
++     execute 'sbuffer' s:session_list_buffer
++   endif
++ else
+    execute 'new' s:session_list_buffer
+    set buftype=nofile
++ endif
++
++ " delete buffer contents
++ %delete _
+  call setline(1, files)
+endfunction
+```
+
+diffの処理を追加したら`:so %`で再度スクリプトをロードして関数を実行してみましょう。新たなウィンドは作れず既存バッファとウィンドウを使うようになっているはずです。
+
+#### キーマッピングを追加
+表示はできたので、最後に以下のキーマッピングを追加していきます。
+
+- `Enter`でカーソル下にあるセッションファイルをロード
+- `q`でバッファを破棄
+
+```diff
+function! session#sessions() abort
+  let files = s:files()
+  if empty(files)
+    return
+  endif
+
+  " if buffer exists
+  if bufexists(s:session_list_buffer)
+    " if buffer display in window
+    let winid = bufwinid(s:session_list_buffer)
+    if winid isnot# -1
+      call win_gotoid(winid)
+    else
+      execute 'sbuffer' s:session_list_buffer
+    endif
+  else
+    execute 'new' s:session_list_buffer
+    set buftype=nofile
+
++   nnoremap <silent> <buffer>
++         \   <Plug>(session-close)
++         \   :<C-u>bwipeout!<CR>
++   nnoremap <silent> <buffer>
++         \   <Plug>(session-open)
++         \   :<C-u>call session#load_session(trim(getline('.')))<CR>
++
++   nmap <buffer> q <Plug>(session-close)
++   nmap <buffer> <CR> <Plug>(session-open)
+  endif
+
+  " delete buffer contents
+  %delete _
+  call setline(1, files)
+endfunction
+```
+
+`<Plug>`は特殊でどのキーともマッピングしないです。多くのプラグインではこの`<Plug>(xxxx)`を提供して、ユーザが自由にキーマッピングできる仕組みを提供しています。
+
+`<buffer>`は現在のバッファだけにキーマッピングを適用します。今回のような他のバッファに影響しないキーマップを用意するときは付ける必要があります。
+
 ### `plugin/session.vim`の実装
 #### グローバルガード
 #### コマンド定義
