@@ -28,6 +28,7 @@ function! s:files() abort
     return []
   endif
 
+  let session_path = expand(session_path)
   let Filter = { file -> !isdirectory(session_path . s:sep . file) }
   return filter(s:readdir(session_path), Filter)
 endfunction
