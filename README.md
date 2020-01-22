@@ -110,8 +110,10 @@ let a-b = 1
 | `v:`   | グローバルスコープ、Vimが予め定義している変数        |
 
 ### 辞書
-- `{ key: value }`の形になる
+- `{}`で囲う
+- 1つ要素は`{key}: {value}`からなる
 - `{key}`は文字列でなければいけない
+- 要素は`,`で区切られる
 
 ```vim
 let animal = {'name': 'gorilla', 'age': 27}
@@ -364,15 +366,13 @@ session.vim/
     └── session.vim
 ```
 
-それぞれのディレクトリについて解説していきます。
-
-### pluginディレクトリについて
+### `plugin`ディレクトリについて
 `plugin`配下はプラグインが提供するExコマンドやオプションを記述したスクリプトファイルを置きます。
 メインの処理はここではなく後述する`autoload`に記述します。
 
 スクリプトファイル名はプラグイン名と同じにするのが一般的です。
 
-### autoloadディレクトリについて
+### `autoload`ディレクトリについて
 `autoload`配下はメインの処理を記述したスクリプトファイルを置きます。
 配下のスクリプトファイルはVim起動時ではなく、コマンド実行時に一度だけ読み込まれます。
 
@@ -384,16 +384,162 @@ session.vim/
 そのため、プラグイン名が被ると`autoload`配下のスクリプトファイル名も被り、最悪違うプラグインの関数で上書きされる可能性があります。
 これがプラグイン名がかぶらないようにする必要がある理由です。
 
-### docディレクトリについて
+### `doc`ディレクトリについて
 `doc`配下はヘルプファイルを置きます。`:h SessionList`というようにコマンドのヘルプを引けるようにするためです。
 基本的にヘルプに書かれているものは公式、書かれていないものは非公式の機能になります。プラグインを公開する時はREADME.mdだけでなくヘルプを書きましょう。
 
-### `session.vim`ディレクトリの作成
+### プラグインディレクトリ`session.vim`の作成
+開発中のプラグインを動作確認をするために、プラグインをロードする必要があります。
+今回ではVimにビルドインされているパッケージ機能を利用して、開発中のプラグインをロードします。
+開発の準備としてパッケージ機能で使用するディレクトリと、今回開発するプラグインのディレクトリ構成を作成します。
+
+```sh
+# パッケージ機能で使用するディレクトを作成します。ここにプラグインのディレクトリを置くとVim起動時にruntimepathに追加され、プラグインがロードされます
+$ mkdir -p ~/.vim/pack/plugins/start/
+# Neovimの場合は以下のディレクトリになります。以下手順は適宜読み替えてください
+$ mkdir -p ~/.config/nvim/pack/plugins/start/
+
+# プラグインのディレクトリ構成を作成します
+$ cd ~/.vim/pack/plugins/start/
+# Neovimの場合は以下
+$ cd ~/.config/nvim/pack/plugins/start/
+
+$ mkdir session.vim
+$ cd session.vim
+$ mkdir autoload plugin
+$ touch autoload/session.vim
+$ touch plugin/session.vim
+```
+
+### セッションファイルを保存するディレクトリの作成
+```sh
+# Vimの方は~/.vim/session
+mkdir -p ~/.vim/session
+
+# Neovimの方は~/.config/nvim/session
+mkdir -p ~/.config/nvim/session
+```
 
 ### `autoload/session.vim`の実装
+#### 1. セッションを保存する関数
+まずは`g:session_path`にセッションファイルを保存する関数を作ります。
 
-#### セッション保存処理
-#### セッションロード処理
+```vim
+let s:sep = fnamemodify('.', ':p')[-1:]
+
+function! session#create_session(file) abort
+  execute 'mksession!' join([g:session_path, a:file], s:sep)
+  redraw
+  echo 'session.vim: created'
+endfunction
+```
+
+関数を実装したら、`so %`で一度スクリプトファイルをロードします。そうすると関数を実行できるようになります。
+次にコマンドラインで`g:session_path`を設定します。それぞれの環境に合わせて先ほど作成したパスを設定してください。
+
+```vim
+:let g:session_path = {path}
+```
+
+では実際関数を実行して、セッションファイルを作ってみましょう。正常に作成できたら`session.vim: created`メッセージが出力されます。
+
+```vim
+:call session#create_session('test')
+```
+
+#### 2. セッションをロードする関数
+以下の関数を作ります。
+
+```vim
+function! session#load_session(file) abort
+  execute 'source' join([g:session_path, a:file], s:sep)
+endfunction
+```
+
+関数を作ったら、一度Vimを再起動して先程保存したセッションファイルを実際ロードしてみましょう。
+ウィンドウの状態が戻ったらOKです。
+
+```vim
+call session#load_session('test')
+```
+
+#### 3. エラーメッセージを出力する関数
+処理中に何かしらエラーが発生した場合、エラーメッセージであることがわかるように、
+`echohl`を使ってコマンドラインに赤いメッセージを出力する関数を作ります。
+
+```vim
+function! s:echo_err(msg) abort
+  echohl ErrorMsg
+  echomsg 'session.vim:' a:msg
+  echohl None
+endfunction
+```
+
+実際メッセージは赤くなるのかを確かめるため、グローバルな関数`TestEcho()`を作ります。
+
+```vim
+function! TestEcho(msg) abort
+    call s:echo_err(a:msg)
+endfunction
+```
+
+上記2つの関数を作ったら`TestEecho`を実行して、赤いメッセージが出たらOKです。
+
+```vim
+:call TestEcho('I am gorilla')
+```
+
+これは動作確認の関数なので削除しておきましょう。`delfunc TestEcho`で削除するか、一度Vimを再起動するかしましょう。
+
+#### 2. `g:session_path`からセッションファイル一覧を取得する関数を実装
+`s:readdir`関数を使って`g:session_path`配下にあるファイルのリストを取得します。
+
+ここでのキモは`exists()`で`readdir()`関数があるかを確認するところです。
+
+`readdir()`がなければ`glob()`関数を使ってファイルとディレクトリ一覧を取得する関数`s:readdir()`を用意している部分です。Neovimでは`readdir()`がないため`glob()`を使う必要があります。
+
+`readdir()`がある場合は`function()`で関数への参照を取得して`s:readdir`変数に代入して、NeovimでもVimでも同じ変数名でファイル一覧を取得できるようにします。
+
+ファイル、ディレクトリ一覧を取得したあとに、ファイルのみを抽出するために`Filter`Lambdaを用意し`filter()`関数を使って絞り込みます。
+
+```vim
+if exists('*readdir')
+  let s:readdir = function('readdir')
+else
+  function! s:readdir(dir) abort
+    return map(glob(a:dir . s:sep . '*', 1, 1), 'fnamemodify(v:val, ":t")')
+  endfunction
+endif
+
+function! s:files() abort
+  let session_path = get(g:, 'session_path', '')
+  if session_path is# ''
+    call s:echo_err('session_path is empty')
+    return []
+  endif
+
+  let session_path = expand(session_path)
+  let Filter = { file -> !isdirectory(session_path . s:sep . file) }
+  return filter(s:readdir(session_path), Filter)
+endfunction
+```
+
+では、実際ファイル一覧を取得できるかを確認してみましょう。グローバルな関数`TestFiles()`を作ります。
+
+```vim
+function! TestFiles() abort
+  echo s:files()
+endfunction
+```
+
+作った関数を実行して、先程作成した`test`ファイルが出力されればOKです。
+
+```vim
+:call TestFiles()
+```
+
+このテストのための関数も不要なので削除しておきましょう。
+
 #### セッション一覧取得処理
 ##### セッションファイルのリストを取得
 ##### リストを表示するバッファを作成（すでにあれば表示）
